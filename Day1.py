@@ -20,7 +20,13 @@ def main():
 
     print(f'Distance: {distance}')
 
-    
+    # Part 2
+    similarity = 0
+    for x, y in zip(list1, list2):
+        if x in list2:
+            similarity = similarity + (x * list2.count(x))
+
+    print(f'Similarity: {similarity}')
     return 0
 
 if __name__ == "__main__":
