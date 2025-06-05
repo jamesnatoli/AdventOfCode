@@ -1,4 +1,4 @@
-# 2024 Advent of Code: Day 3
+# 2024 Advent of Code: Day 3OA
 import re
 
 def multiplymuls( line):
@@ -11,46 +11,41 @@ def multiplymuls( line):
     return mulsum
 
 def findrecent( inlist, pos):
+    if pos < inlist[0]: # mul is before first
+        return False
+
     for i, ip1 in zip( inlist, inlist[1:]):
-        if pos > ip1:
+        if (pos > i) and (pos < ip1):
             return i
-    return True # just in case
+        
+    return inlist[-1] # mul is after last
 
 def main():
     with open('inputs/day3.txt') as infile:
         mulsum = 0
         enabledmulsum = 0
         lines = infile.readlines()
+        alltext = ""
+        
+        # Part 1
         for line in lines:
-            # Part 1
             mulsum = mulsum + multiplymuls( line)
+            alltext = alltext + line # ignore the line breaks so that don't() commands carry through
 
-            # Part 2
-            # test = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
-            # splitondont = re.split( r"don\'t\(\)", line)
-            # enabledmulsum = enabledmulsum + multiplymuls( splitondont[0])
-            # print('SPLIT ON DONT:')
-            # for dontsplit in splitondont[1:]:
-            #     print(dontsplit)
-            #     print()
-            #     if re.search( r"do\(\)", dontsplit):
-            #         enabledregion = dontsplit[re.search( r"do\(\)", dontsplit).start():]
-            #         enabledmulsum = enabledmulsum + multiplymuls( enabledregion)
-            dontiters = [ x.start() for x in re.finditer( r"don\'t\(\)", line)]
-            doiters = [ x.start() for x in re.finditer( r"do\(\)", line)]
-            muliters = re.finditer( r"mul\(\d+,\d+\)", line)
+        # Part 2
+        test = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+        dontiters = [ x.start() for x in re.finditer( r"don\'t\(\)", alltext)]
+        doiters = [ x.start() for x in re.finditer( r"do\(\)", alltext)]
+        muliters = re.finditer( r"mul\(\d+,\d+\)", alltext)
 
-            for mul in muliters:
-                if mul.start() < dontiters[0]:
-                    enabledmulsum = enabledmulsum + multiplymuls( mul.group())
-                else:
-                    dontrecent = findrecent( dontiters, mul.start())
-                    dorecent = findrecent( doiters, mul.start())
-                    if dorecent > dontrecent:
-                        print( f'Mul at {mul.start()}: do() at {dorecent} is more recent than don\'t() at {dontrecent}, multiplying {mul.group()}')
-                        print(enabledmulsum)
-                        enabledmulsum = enabledmulsum + multiplymuls( mul.group())
-            
+        for mul in muliters:
+            if not findrecent( dontiters, mul.start()): # muls are enabled at start by default
+                enabledmulsum = enabledmulsum + multiplymuls( mul.group())
+            elif findrecent( doiters, mul.start()) > findrecent( dontiters, mul.start()): # do() is more recent
+                enabledmulsum = enabledmulsum + multiplymuls( mul.group())
+            else: # dummy statement, but this is where we'll skip multiplying because of a recent don't()
+                pass
+
     print(f'Sum of muls: {mulsum}')
     print(f'Sum of enabled muls: {enabledmulsum}')
     return 0
